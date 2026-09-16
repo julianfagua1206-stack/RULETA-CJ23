@@ -48,6 +48,7 @@
             position: relative;
         }
 
+        /* Ambient glowing background blur effects */
         body::before {
             content: '';
             position: fixed;
@@ -355,6 +356,7 @@
             filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
         }
 
+        /* Modal styling */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -624,6 +626,7 @@
             { title: "12. La Fusión de Pie 🧱", desc: "De pie con apoyo en la pared; una postura espontánea, apasionada y cargada de energía.", svg: `<svg viewBox="0 0 100 80" class="card-svg"><line x1="75" y1="10" x2="75" y2="70" stroke="#666" stroke-width="3"/><path d="M 60 65 L 60 25" stroke="#b82e5a" stroke-width="5"/><circle cx="60" cy="18" r="4.5" fill="#b82e5a"/><path d="M 52 65 L 52 25" stroke="#d4af37" stroke-width="5"/><circle cx="52" cy="18" r="5" fill="#d4af37"/></svg>` }
         ];
 
+        // Shuffle utility function to randomize card order
         function shuffleArray(array) {
             const arr = [...array];
             for (let i = arr.length - 1; i > 0; i--) {
@@ -643,10 +646,12 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // Elegant unified monochrome/bicolor palette matching the luxury theme
             for (let i = 0; i < numOptions; i++) {
                 const angle = i * arcSize;
                 ctx.beginPath();
                 
+                // Elegant alternating luxury dark tones
                 if (i % 2 === 0) {
                     ctx.fillStyle = '#1e112a';
                 } else {
@@ -658,27 +663,31 @@
                 ctx.lineTo(radius, radius);
                 ctx.fill();
 
+                // Gold divider line
                 ctx.strokeStyle = 'rgba(212, 175, 55, 0.4)';
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
 
+                // Draw Text
                 ctx.save();
                 ctx.translate(radius, radius);
                 ctx.rotate(angle + arcSize / 2);
                 ctx.textAlign = "right";
-                ctx.fillStyle = "#f3e5ab";
+                ctx.fillStyle = "#f3e5ab"; // Champagne gold text
                 ctx.font = "600 12.5px Outfit, sans-serif";
                 const label = options[i].text;
                 ctx.fillText(label.length > 18 ? label.substring(0, 16) + '..' : label, radius - 22, 4);
                 ctx.restore();
             }
 
+            // Outer ring accent
             ctx.beginPath();
             ctx.arc(radius, radius, radius - 6, 0, 2 * Math.PI);
             ctx.strokeStyle = '#d4af37';
             ctx.lineWidth = 2;
             ctx.stroke();
 
+            // Center Badge
             ctx.beginPath();
             ctx.arc(radius, radius, 32, 0, 2 * Math.PI);
             ctx.fillStyle = '#0f0817';
@@ -780,6 +789,7 @@
         function renderCardsLevel3() {
             const grid = document.getElementById('gridLevel3');
             grid.innerHTML = '';
+            // Shuffle cards every time level is opened
             const shuffledCards = shuffleArray(level3CardsRaw);
             
             shuffledCards.forEach((card, idx) => {
@@ -809,6 +819,7 @@
         function renderCardsExtremo() {
             const grid = document.getElementById('gridExtremo');
             grid.innerHTML = '';
+            // Shuffle cards every time level is opened
             const shuffledCards = shuffleArray(extremoCardsRaw);
 
             shuffledCards.forEach((card, idx) => {
