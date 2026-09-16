@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta CJ23 - Juego de la Pasión</title>
+
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,600;0,900;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #09060e;
+            --card-bg: rgba(23, 15, 38, 0.88);
+            --gold: #f39c12;
+            --gold-light: #f1c40f;
+            --pink-neon: #ff2a85;
+            --cyan-neon: #00d2ff;
+            --purple-glow: #8e44ad;
+            --text-light: #f5f5f7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at center, #1a0b2e 0%, #09060e 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            padding-bottom: 40px;
+        }
+
+        /* HEADER & BANNER */
+        header {
+            width: 100%;
+            text-align: center;
+            padding: 22px 15px 10px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, transparent 100%);
+        }
+
+        .title-main {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ffd700, var(--pink-neon), #00d2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 42, 133, 0.4);
+            letter-spacing: 1.5px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.75);
+            margin-top: 4px;
+            font-weight: 300;
+        }
+
+        /* CONTROLES: TURNO Y NIVELES */
+        .controls-container {
+            width: 92%;
+            max-width: 500px;
+            margin: 15px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .turn-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid rgba(243, 156, 18, 0.4);
+            padding: 10px 18px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        }
+
+        .turn-badge {
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .turn-julian { color: var(--cyan-neon); text-shadow: 0 0 10px rgba(0,210,255,0.6); }
+        .turn-carolina { color: var(--pink-neon); text-shadow: 0 0 10px rgba(255,42,133,0.6); }
+
+        .btn-switch-turn {
+            background: linear-gradient(135deg, var(--gold), #d35400);
+            border: none;
+            color: #fff;
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
+            transition: all 0.2s;
+        }
+        .btn-switch-turn:active { transform: scale(0.94); }
+
+        /* NIVELES / PESTAÑAS */
+        .level-tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.65);
+            padding: 10px 4px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--pink-neon), var(--purple-glow));
+            color: #fff;
+            box-shadow: 0 3px 12px rgba(255, 42, 133, 0.5);
+        }
+
+        .tab-btn.extremo-tab.active {
+            background: linear-gradient(135deg, #e74c3c, #8e44ad);
+            box-shadow: 0 3px 14px rgba(231, 76, 60, 0.7);
+        }
+
+        /* SECCIONES DEL JUEGO */
+        .game-section {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .game-section.active { display: flex; }
+
+        /* CONTENEDOR RULETA */
+        .wheel-wrapper {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 20px auto;
+        }
+
+        @media (max-width: 360px) {
+            .wheel-wrapper { width: 280px; height: 280px; }
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 26px solid var(--gold-light);
+            z-index: 10;
+            filter: drop-shadow(0 3px 8px rgba(0,0,0,0.9));
+        }
+
+        canvas#wheelCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(255, 42, 133, 0.4), inset 0 0 20px rgba(0,0,0,0.8);
+            border: 4px solid var(--gold);
+            transition: transform 4s cubic-bezier(0.15, 0.99, 0.35, 1);
+        }
+
+        .btn-spin {
+            margin-top: 20px;
+            background: linear-gradient(135deg, var(--pink-neon), #c0392b);
+            color: #fff;
+            border: 2px solid var(--gold);
+            padding: 14px 42px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 0 22px rgba(255, 42, 133, 0.6);
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .btn-spin:active { transform: scale(0.95); }
+
+        .btn-next-level {
+            margin-top: 15px;
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold-light);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-next-level:hover { background: rgba(243, 156, 18, 0.15); }
+
+        /* PARRILLA DE CARTAS (NIVEL 3 & EXTREMO) */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 15px;
+            width: 92%;
+            margin: 15px auto;
+        }
+
+        .card-item {
+            height: 185px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .card-item.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border: 1px solid rgba(243, 156, 18, 0.4);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.6);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #1c102b, #0d0617);
+            background-image: radial-gradient(var(--gold) 1px, transparent 0);
+            background-size: 12px 12px;
+        }
+
+        .card-front i {
+            font-size: 2.2rem;
+            color: var(--gold-light);
+            margin-bottom: 8px;
+        }
+
+        .card-front span {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.85);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #2b1130, #170721);
+            transform: rotateY(180deg);
+            border-color: var(--pink-neon);
+            text-align: center;
+        }
+
+        .card-back h4 {
+            font-size: 0.85rem;
+            color: var(--gold-light);
+            margin-bottom: 6px;
+        }
+
+        .card-back p {
+            font-size: 0.72rem;
+            color: #ddd;
+            line-height: 1.25;
+        }
+
+        .card-svg {
+            width: 75px;
+            height: 75px;
+            margin: 4px 0;
+        }
+
+        /* MODAL DE RESULTADOS */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .modal-card {
+            background: linear-gradient(135deg, #211233, #0d0517);
+            border: 2px solid var(--gold);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 420px;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 0 35px rgba(255, 42, 133, 0.5);
+            animation: popup 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popup {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            color: var(--gold-light);
+            margin-bottom: 10px;
+        }
+
+        .modal-body {
+            font-size: 1.1rem;
+            color: #fff;
+            margin: 15px 0;
+            line-height: 1.45;
+        }
+
+        .modal-svg-container {
+            width: 160px;
+            height: 140px;
+            margin: 10px auto;
+        }
+
+        /* TEMPORIZADOR EN MODAL */
+        .timer-box {
+            margin: 15px 0;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 42, 133, 0.4);
+        }
+
+        .timer-display {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--cyan-neon);
+            font-family: monospace;
+            text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+        }
+
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-timer {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 5px 14px;
+            border-radius: 15px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-timer:active { transform: scale(0.92); }
+
+        .btn-close-modal {
+            background: linear-gradient(135deg, var(--pink-neon), var(--purple-glow));
+            color: #fff;
+            border: none;
+            padding: 12px 32px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 4px 18px rgba(255, 42, 133, 0.5);
+            transition: all 0.2s;
+        }
+        .btn-close-modal:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 class="title-main">RULETA CJ23</h1>
+        <p class="subtitle">Juego de la Pasión • Julián & Carolina</p>
+    </header>
+
+    <div class="controls-container">
+        <!-- BARRA DE TURNO -->
+        <div class="turn-bar">
+            <div class="turn-badge" id="turnDisplay">
+                <i class="fa-solid fa-heart"></i>
+                <span id="turnText" class="turn-julian">Turno de Julián</span>
+            </div>
+            <button class="btn-switch-turn" onclick="switchTurn()">Cambiar Turno 🔄</button>
+        </div>
+
+        <!-- TABS DE NIVELES -->
+        <div class="level-tabs">
+            <button class="tab-btn active" onclick="setLevel(1)">Nivel 1 🥂</button>
+            <button class="tab-btn" onclick="setLevel(2)">Nivel 2 🌶️</button>
+            <button class="tab-btn" onclick="setLevel(3)">Nivel 3 🃏</button>
+            <button class="tab-btn extremo-tab" onclick="setLevel(4)">Extremo 🔞</button>
+        </div>
+    </div>
+
+    <!-- SECCIÓN RULETA (NIVEL 1 Y NIVEL 2) -->
+    <div class="game-section active" id="sectionWheel">
+        <div class="wheel-wrapper">
+            <div class="wheel-pointer"></div>
+            <canvas id="wheelCanvas" width="360" height="360"></canvas>
+        </div>
+        <button class="btn-spin" onclick="spinWheel()">GIRAR RULETA 🔥</button>
+        <button class="btn-next-level" id="btnNextLevel" onclick="nextLevelAuto()">Pasar al Nivel 2: Subir la Temperatura 🌡️</button>
+    </div>
+
+    <!-- SECCIÓN CARTAS NIVEL 3 -->
+    <div class="game-section" id="sectionCardsLevel3">
+        <div class="cards-grid" id="gridLevel3"></div>
+    </div>
+
+    <!-- SECCIÓN CARTAS EXTREMO (KAMASUTRA) -->
+    <div class="game-section" id="sectionCardsExtremo">
+        <div class="cards-grid" id="gridExtremo"></div>
+    </div>
+
+    <!-- MODAL DE RESULTADO -->
+    <div class="modal-overlay" id="outcomeModal">
+        <div class="modal-card">
+            <h3 class="modal-title" id="modalTitle">¡RETO REVELADO!</h3>
+            <div class="modal-svg-container" id="modalSvgContainer" style="display:none;"></div>
+            <div class="modal-body" id="modalBody">...</div>
+
+            <div class="timer-box" id="modalTimerBox" style="display:none;">
+                <div class="timer-display" id="timerDisplay">00:30</div>
+                <div class="timer-controls">
+                    <button class="btn-timer" onclick="startTimer()">Iniciar ▶️</button>
+                    <button class="btn-timer" onclick="pauseTimer()">Pausa ⏸️</button>
+                    <button class="btn-timer" onclick="resetTimer()">Reiniciar 🔄</button>
+                </div>
+            </div>
+
+            <button class="btn-close-modal" onclick="closeModal()">¡Cumplido! 💖</button>
+        </div>
+    </div>
+
+    <script>
+        // WEB AUDIO SYNTHESIZER FOR SOUND EFFECTS
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playTickSound() {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.04);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.04);
+            } catch(e){}
+        }
+
+        function playWinSound() {
+            try {
+                initAudio();
+                const notes = [440, 554.37, 659.25, 880];
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime + idx * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.1 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime + idx * 0.1);
+                    osc.stop(audioCtx.currentTime + idx * 0.1 + 0.3);
+                });
+            } catch(e){}
+        }
+
+        // CONFIGURACIÓN DE ESTADO
+        let currentLevel = 1;
+        let currentTurn = 'Julián';
+        let isSpinning = false;
+        let timerInterval = null;
+        let timerSeconds = 30;
+        let initialSeconds = 30;
+        let currentRotation = 0;
+
+        // DATOS DE NIVELES
+        const level1Options = [
+            { text: "Cumplido atrevido", desc: "Hazme un cumplido picante sobre mi cuerpo o sobre algo que te vuelva loco/a de mí.", icon: "💬" },
+            { text: "Rozar zona favorita (15s)", desc: "Roza suavemente con la yema de tus dedos mi parte favorita del cuerpo durante 15 segundos.", time: 15, icon: "🖐️" },
+            { text: "Susurro tentador", desc: "Dile al oído a tu pareja una provocación en voz muy baja sin tocarle la boca.", icon: "👂" },
+            { text: "Beso lento (15s)", desc: "Un beso profundo y pausado en los labios sin ninguna prisa.", time: 15, icon: "💋" },
+            { text: "Quitar 1 accesorio", desc: "Elige quitarte una prenda secundaria (reloj, medias, calzado...) o quitársela a tu pareja.", icon: "👕" },
+            { text: "Masaje de hombros (30s)", desc: "Caricias reconfortantes y suaves en los hombros o cuello para relajar el ambiente.", time: 30, icon: "💆" },
+            { text: "Mirada fija (20s)", desc: "Mirarse fijamente a los ojos a 2 cm de distancia sin reírse ni tocarse.", time: 20, icon: "👀" },
+            { text: "Beso a elección", desc: "Dale un beso sensual en la zona que tú decidas (cuello, hombro, muñeca...).", icon: "👄" },
+            { text: "¡Giras de nuevo!", desc: "¡Tienes un tiro gratis inmediato! Vuelve a girar la ruleta.", icon: "🔄" },
+            { text: "Paso libre", desc: "Tú eliges cuál de los retos anteriores quieres aplicarle a tu pareja en este turno.", icon: "👑" }
+        ];
+
+        const level2Options = [
+            { text: "Pregunta íntima", desc: "Hazme una pregunta íntima o secreta que nunca me hayas hecho antes.", icon: "❓" },
+            { text: "Fantasía al oído", desc: "Dile al oído a tu pareja la fantasía sensual que más te gustaría cumplir a su lado.", icon: "👂" },
+            { text: "Quitar 1 prenda principal", desc: "Quítate una prenda clave... o quítasela a tu pareja (¡con manos o dientes!).", icon: "👙" },
+            { text: "Camino de hielo/labios (30s)", desc: "Pasa un hielo (o tus labios húmedos) desde el cuello hasta el abdomen.", time: 30, icon: "🧊" },
+            { text: "Caricias a ciegas (45s)", desc: "Tu pareja cierra los ojos mientras acaricias libremente su piel.", time: 45, icon: "🙈" },
+            { text: "Castigo de la Tentación (1m)", desc: "Pegados cuerpo a cuerpo en ropa interior sin poder besarse en la boca.", time: 60, icon: "⏳" },
+            { text: "Besos recorridos", desc: "Besos continuos bajando lentamente por la espalda o la cintura de tu pareja.", icon: "👄" },
+            { text: "Quedar en ropa interior", desc: "La persona en turno decide quién se quita su última prenda superior.", icon: "🖤" },
+            { text: "Confesión picante", desc: "Cuéntale a tu pareja qué pensaste la primera vez que la/lo viste con poca ropa.", icon: "🗣️" },
+            { text: "Tiro extra + Beso", desc: "Giras de nuevo inmediatamente, pero cobras un beso apasionado antes.", icon: "🔄" },
+            { text: "Exploración erógena (30s)", desc: "Tocar suavemente la zona erógena preferida de tu pareja.", time: 30, icon: "🖐️" },
+            { text: "Comodín Tentación", desc: "Le das una orden sensual directa a tu pareja y debe cumplirla de inmediato.", icon: "🎟️" }
+        ];
+
+        const level3Cards = [
+            { title: "Placer Oral (30s)", desc: "30 segundos concentrados de placer oral dedicado exclusivamente a tu pareja.", time: 30, icon: "👅" },
+            { title: "Beso Sin Manos", desc: "Dale un beso intenso a tu pareja manteniendo tus manos atadas a la espalda.", icon: "🚫" },
+            { title: "15s de Control Total", desc: "Tienes 15 segundos para hacer absolutamente lo que quieras con tu pareja.", time: 15, icon: "⏱️" },
+            { title: "Masaje Sensual (1m)", desc: "Masaje directo piel con piel con crema/aceite en la zona que tu pareja pida.", time: 60, icon: "💆" },
+            { title: "Dominio Absoluto (45s)", desc: "Tu pareja cierra los ojos y se deja llevar por completo por lo que tú le hagas.", time: 45, icon: "⏳" },
+            { title: "Deseo Ilimitado", desc: "La persona en turno elige la postura o acción con la que van a continuar.", icon: "🎟️" },
+            { title: "Atención Erógena (45s)", desc: "Caricias y besos dedicados exclusivamente a su punto más sensible.", time: 45, icon: "👄" },
+            { title: "Modo Pasión Libre", desc: "La pantalla se apaga con luz tenue y música. ¡Disfruten sin tiempo ni reglas!", icon: "♾️" }
+        ];
+
+        // 15 POSTURAS KAMASUTRA CON SVGs
+        const extremoCards = [
+            { title: "1. El Misionero Clásico 💋", desc: "Cara a cara en contacto pecho con pecho, ideal para besos lentos ininterrumpidos y mirada directa.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 20 60 Q 50 55 80 60" stroke="#00d2ff" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <circle cx="20" cy="55" r="5" fill="#00d2ff"/>
+                    <path d="M 22 52 Q 50 45 78 52" stroke="#ff2a85" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <circle cx="22" cy="46" r="4.5" fill="#ff2a85"/>
+                </svg>` },
+            { title: "2. La Cucharita Sensual 🛌", desc: "Tumbados de lado en la misma dirección; postura íntima y cómoda para caricias largas en la espalda.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 15 50 Q 45 40 80 50" stroke="#00d2ff" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <circle cx="15" cy="45" r="5" fill="#00d2ff"/>
+                    <path d="M 25 45 Q 52 35 85 45" stroke="#ff2a85" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <circle cx="25" cy="40" r="4.5" fill="#ff2a85"/>
+                </svg>` },
+            { title: "3. La Flor de Loto 🧘‍♂️", desc: "Sentados frente a frente con las piernas entrelazadas y brazos en el cuello; máxima cercanía.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 35 65 L 40 35 L 45 65" stroke="#00d2ff" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <circle cx="40" cy="28" r="5" fill="#00d2ff"/>
+                    <path d="M 45 65 L 50 35 L 55 65" stroke="#ff2a85" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <circle cx="50" cy="28" r="4.5" fill="#ff2a85"/>
+                </svg>` },
+            { title: "4. El 69 Clásico (Oral Mutuo) ☯️", desc: "Posición frente a frente en sentidos opuestos para brindarse placer oral mutuamente al mismo tiempo.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 20 35 L 75 35" stroke="#00d2ff" stroke-width="5" stroke-linecap="round"/>
+                    <circle cx="78" cy="35" r="5" fill="#00d2ff"/>
+                    <path d="M 80 50 L 25 50" stroke="#ff2a85" stroke-width="5" stroke-linecap="round"/>
+                    <circle cx="22" cy="50" r="4.5" fill="#ff2a85"/>
+                </svg>` },
+            { title: "5. El 69 De Lado ☯️✨", desc: "Variación recostados de lado frente a frente; muy relajada para placer oral simultáneo.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 20 40 Q 50 30 75 40" stroke="#00d2ff" stroke-width="5" fill="none"/>
+                    <circle cx="78" cy="40" r="5" fill="#00d2ff"/>
+                    <path d="M 80 48 Q 50 58 25 48" stroke="#ff2a85" stroke-width="5" fill="none"/>
+                    <circle cx="22" cy="48" r="4.5" fill="#ff2a85"/>
+                </svg>` },
+            { title: "6. La Amazona (El Control) 👑", desc: "La persona arriba toma el control total del ritmo, velocidad y movimiento durante 2 minutos.", time: 120, svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 20 60 L 80 60" stroke="#00d2ff" stroke-width="6" stroke-linecap="round"/>
+                    <circle cx="20" cy="58" r="5" fill="#00d2ff"/>
+                    <path d="M 50 60 L 50 30 L 60 55" stroke="#ff2a85" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <circle cx="50" cy="22" r="4.5" fill="#ff2a85"/>
+                </svg>` },
+            { title: "7. El Trono de la Pasión 🪑", desc: "Uno sentado/a al borde de la cama o silla y el otro encima frente a frente abrazados.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 30 35 L 30 65 L 50 65" stroke="#00d2ff" stroke-width="6" fill="none"/>
+                    <circle cx="30" cy="28" r="5" fill="#00d2ff"/>
+                    <path d="M 38 60 L 38 32 L 48 55" stroke="#ff2a85" stroke-width="5" fill="none"/>
+                    <circle cx="38" cy="25" r="4.5" fill="#ff2a85"/>
+                </svg>` },
+            { title: "8. La Mariposa 🦋", desc: "Una persona recostada al borde y la otra de pie/arrodillada enfrente; ideal para caricias en piernas.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 15 45 L 50 45 L 65 25" stroke="#ff2a85" stroke-width="5" fill="none"/>
+                    <circle cx="15" cy="40" r="4.5" fill="#ff2a85"/>
+                    <path d="M 55 65 L 55 35" stroke="#00d2ff" stroke-width="6" fill="none"/>
+                    <circle cx="55" cy="28" r="5" fill="#00d2ff"/>
+                </svg>` },
+            { title: "9. El Candado (Abrazo) 🔒", desc: "Frente a frente con las piernas rodeando la cintura; contacto piel con piel continuo.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 42 65 L 42 30" stroke="#00d2ff" stroke-width="6"/>
+                    <circle cx="42" cy="23" r="5" fill="#00d2ff"/>
+                    <path d="M 48 60 L 48 30 M 35 45 Q 48 55 58 45" stroke="#ff2a85" stroke-width="5" fill="none"/>
+                    <circle cx="48" cy="23" r="4.5" fill="#ff2a85"/>
+                </svg>` },
+            { title: "10. La Cuesta (Con Almohada) 🛋️", desc: "Colocando una almohada bajo la cadera para elevar la posición, aumentando la sensibilidad.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 20 55 Q 50 40 80 55" stroke="#ff2a85" stroke-width="5" fill="none"/>
+                    <circle cx="20" cy="48" r="4.5" fill="#ff2a85"/>
+                    <path d="M 25 45 L 75 48" stroke="#00d2ff" stroke-width="6" fill="none"/>
+                    <circle cx="25" cy="38" r="5" fill="#00d2ff"/>
+                </svg>` },
+            { title: "11. El Perrito Clásico 🐾", desc: "De espaldas, ideal para masajes suaves en la espalda, caderas y susurros picantes.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 25 55 L 45 55 L 45 40 L 70 40" stroke="#ff2a85" stroke-width="5" fill="none"/>
+                    <circle cx="72" cy="35" r="4.5" fill="#ff2a85"/>
+                    <path d="M 55 65 L 55 35 L 75 38" stroke="#00d2ff" stroke-width="6" fill="none"/>
+                    <circle cx="55" cy="28" r="5" fill="#00d2ff"/>
+                </svg>` },
+            { title: "12. La Fusión de Pie 🧱", desc: "De pie con apoyo en la pared; una postura espontánea, apasionada y cargada de energía.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <line x1="75" y1="10" x2="75" y2="70" stroke="#555" stroke-width="3"/>
+                    <path d="M 60 65 L 60 25" stroke="#ff2a85" stroke-width="5"/>
+                    <circle cx="60" cy="18" r="4.5" fill="#ff2a85"/>
+                    <path d="M 52 65 L 52 25" stroke="#00d2ff" stroke-width="6"/>
+                    <circle cx="52" cy="18" r="5" fill="#00d2ff"/>
+                </svg>` },
+            { title: "13. La Montaña (Boca Abajo) 🏔️", desc: "Recostados boca abajo con ligera inclinación; permite besos continuos en la nuca y espalda.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 20 55 L 80 55" stroke="#ff2a85" stroke-width="5"/>
+                    <circle cx="80" cy="50" r="4.5" fill="#ff2a85"/>
+                    <path d="M 22 48 L 78 48" stroke="#00d2ff" stroke-width="6"/>
+                    <circle cx="78" cy="42" r="5" fill="#00d2ff"/>
+                </svg>` },
+            { title: "14. Las Tijeras / Triángulo ✂️", desc: "Piernas entrelazadas en ángulo; permite caricias constantes y un contacto muy cercano.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 20 30 L 80 60" stroke="#00d2ff" stroke-width="6"/>
+                    <circle cx="20" cy="23" r="5" fill="#00d2ff"/>
+                    <path d="M 20 60 L 80 30" stroke="#ff2a85" stroke-width="5"/>
+                    <circle cx="20" cy="67" r="4.5" fill="#ff2a85"/>
+                </svg>` },
+            { title: "15. El Abrazo Infinito ♾️", desc: "Totalmente abrazados y recostados cara a cara, disfrutando de caricias libres sin prisa.", svg: `
+                <svg viewBox="0 0 100 80" class="card-svg">
+                    <path d="M 20 45 Q 50 35 80 45" stroke="#00d2ff" stroke-width="6" fill="none"/>
+                    <circle cx="20" cy="40" r="5" fill="#00d2ff"/>
+                    <path d="M 20 52 Q 50 62 80 52" stroke="#ff2a85" stroke-width="5" fill="none"/>
+                    <circle cx="80" cy="57" r="4.5" fill="#ff2a85"/>
+                </svg>` }
+        ];
+
+        // DIBUJAR RULETA EN CANVAS
+        function drawWheel() {
+            const canvas = document.getElementById('wheelCanvas');
+            const ctx = canvas.getContext('2d');
+            const options = currentLevel === 1 ? level1Options : level2Options;
+            const numOptions = options.length;
+            const arcSize = (2 * Math.PI) / numOptions;
+            const radius = canvas.width / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const colorsLevel1 = ['#8e44ad', '#2980b9', '#d35400', '#c0392b', '#16a085', '#27ae60', '#f39c12', '#9b59b6', '#e67e22', '#e74c3c'];
+            const colorsLevel2 = ['#c0392b', '#8e44ad', '#d35400', '#16a085', '#f39c12', '#2980b9', '#e74c3c', '#9b59b6', '#27ae60', '#d35400', '#8e44ad', '#c0392b'];
+            const colors = currentLevel === 1 ? colorsLevel1 : colorsLevel2;
+
+            for (let i = 0; i < numOptions; i++) {
+                const angle = i * arcSize;
+                ctx.beginPath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.moveTo(radius, radius);
+                ctx.arc(radius, radius, radius - 5, angle, angle + arcSize);
+                ctx.lineTo(radius, radius);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(243, 156, 18, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // TEXTO DE LA CASILLA
+                ctx.save();
+                ctx.translate(radius, radius);
+                ctx.rotate(angle + arcSize / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 13px Outfit, sans-serif";
+                const label = options[i].text;
+                ctx.fillText(label.length > 18 ? label.substring(0, 16) + '..' : label, radius - 20, 5);
+                ctx.restore();
+            }
+
+            // CENTRO DORADO DE LA RULETA
+            ctx.beginPath();
+            ctx.arc(radius, radius, 30, 0, 2 * Math.PI);
+            ctx.fillStyle = '#f39c12';
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.fillStyle = '#09060e';
+            ctx.font = "bold 12px Outfit";
+            ctx.textAlign = "center";
+            ctx.fillText("CJ23", radius, radius + 4);
+        }
+
+        // CAMBIAR TURNO
+        function switchTurn() {
+            currentTurn = currentTurn === 'Julián' ? 'Carolina' : 'Julián';
+            const textEl = document.getElementById('turnText');
+            textEl.innerText = `Turno de ${currentTurn}`;
+            textEl.className = currentTurn === 'Julián' ? 'turn-julian' : 'turn-carolina';
+        }
+
+        // CAMBIAR NIVEL
+        function setLevel(lvl) {
+            currentLevel = lvl;
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach((btn, idx) => {
+                if (idx + 1 === lvl) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            document.getElementById('sectionWheel').classList.remove('active');
+            document.getElementById('sectionCardsLevel3').classList.remove('active');
+            document.getElementById('sectionCardsExtremo').classList.remove('active');
+
+            if (lvl === 1 || lvl === 2) {
+                document.getElementById('sectionWheel').classList.add('active');
+                drawWheel();
+                document.getElementById('btnNextLevel').innerText = lvl === 1 ? "Pasar al Nivel 2: Subir la Temperatura 🌡️" : "Pasar al Nivel 3: Cartas Secretas 🃏🔥";
+            } else if (lvl === 3) {
+                document.getElementById('sectionCardsLevel3').classList.add('active');
+                renderCardsLevel3();
+            } else if (lvl === 4) {
+                document.getElementById('sectionCardsExtremo').classList.add('active');
+                renderCardsExtremo();
+            }
+        }
+
+        function nextLevelAuto() {
+            if (currentLevel < 4) setLevel(currentLevel + 1);
+        }
+
+        // GIRAR RULETA CON EFECTOS DE SONIDO
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+            initAudio();
+
+            const options = currentLevel === 1 ? level1Options : level2Options;
+            const spinRounds = 5 + Math.floor(Math.random() * 5);
+            const extraDegree = Math.floor(Math.random() * 360);
+            const addedDegrees = spinRounds * 360 + extraDegree;
+            currentRotation += addedDegrees;
+
+            const duration = 4000;
+            const canvas = document.getElementById('wheelCanvas');
+            const start = performance.now();
+            let lastTickAngle = 0;
+
+            function animate(now) {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                // Ease out cubic
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const currentDeg = currentRotation - addedDegrees + (easeOut * addedDegrees);
+
+                canvas.style.transform = `rotate(${currentDeg}deg)`;
+
+                // Sonido de tick cada vez que pasa un segmento
+                if (currentDeg - lastTickAngle > (360 / options.length)) {
+                    playTickSound();
+                    lastTickAngle = currentDeg;
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isSpinning = false;
+                    playWinSound();
+
+                    // CALCULAR GANADOR
+                    const finalDegree = currentDeg % 360;
+                    const numOptions = options.length;
+                    const degreesPerArc = 360 / numOptions;
+
+                    let index = Math.floor((360 - (finalDegree % 360) + 270) % 360 / degreesPerArc);
+                    index = index % numOptions;
+
+                    showOutcome(options[index]);
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        // RENDER CARDS NIVEL 3
+        function renderCardsLevel3() {
+            const grid = document.getElementById('gridLevel3');
+            grid.innerHTML = '';
+            level3Cards.forEach((card, idx) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card-item';
+                cardEl.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <i class="fa-solid fa-fire-flame-curved"></i>
+                            <span>CARTA ${idx + 1}</span>
+                        </div>
+                        <div class="card-back">
+                            <h4>${card.title}</h4>
+                            <p>${card.desc}</p>
+                        </div>
+                    </div>
+                `;
+                cardEl.onclick = () => {
+                    cardEl.classList.toggle('flipped');
+                    playWinSound();
+                    setTimeout(() => showOutcome({ text: card.title, desc: card.desc, time: card.time }), 400);
+                };
+                grid.appendChild(cardEl);
+            });
+        }
+
+        // RENDER CARDS EXTREMO
+        function renderCardsExtremo() {
+            const grid = document.getElementById('gridExtremo');
+            grid.innerHTML = '';
+            extremoCards.forEach((card, idx) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card-item';
+                cardEl.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <i class="fa-solid fa-yin-yang"></i>
+                            <span>KAMASUTRA</span>
+                        </div>
+                        <div class="card-back">
+                            <h4>${card.title}</h4>
+                            ${card.svg}
+                            <p style="font-size:0.65rem;">${card.desc.substring(0, 50)}...</p>
+                        </div>
+                    </div>
+                `;
+                cardEl.onclick = () => {
+                    cardEl.classList.toggle('flipped');
+                    playWinSound();
+                    setTimeout(() => showOutcome({ text: card.title, desc: card.desc, time: card.time, svg: card.svg }), 400);
+                };
+                grid.appendChild(cardEl);
+            });
+        }
+
+        // MOSTRAR MODAL
+        function showOutcome(item) {
+            document.getElementById('modalTitle').innerText = item.text || item.title;
+            document.getElementById('modalBody').innerText = item.desc;
+
+            const svgContainer = document.getElementById('modalSvgContainer');
+            if (item.svg) {
+                svgContainer.innerHTML = item.svg;
+                svgContainer.style.display = 'block';
+            } else {
+                svgContainer.style.display = 'none';
+            }
+
+            const timerBox = document.getElementById('modalTimerBox');
+            if (item.time) {
+                timerBox.style.display = 'block';
+                initialSeconds = item.time;
+                resetTimer();
+            } else {
+                timerBox.style.display = 'none';
+            }
+
+            document.getElementById('outcomeModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('outcomeModal').style.display = 'none';
+            pauseTimer();
+            switchTurn();
+        }
+
+        // LÓGICA DEL TEMPORIZADOR
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const secs = (timerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) return;
+            initAudio();
+            timerInterval = setInterval(() => {
+                if (timerSeconds > 0) {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                } else {
+                    pauseTimer();
+                    playWinSound();
+                    alert("¡TIEMPO CUMPLIDO! 🔥");
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timerSeconds = initialSeconds;
+            updateTimerDisplay();
+        }
+
+        // INICIALIZAR EN NIVEL 1
+        window.onload = () => {
+            drawWheel();
+        };
+    </script>
+</body>
+</html>
